@@ -50,32 +50,6 @@
             margin-bottom: 8px;
         }
 
-        .how-links {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .how-links h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-
-        .how-link {
-            display: block;
-            margin: 10px 0;
-            padding: 8px;
-            background: #fff;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .how-link:hover {
-            background: #e9ecef;
-        }
-
         .input-group {
             margin-bottom: 15px;
         }
@@ -140,19 +114,10 @@
                     </ul>
                 </li>
                 <li><strong>Note:</strong> Make sure your M3U8 stream URL is accessible and allows CORS.</li>
+                <li><strong>!Important! Userscript:</strong> [<a href="https://raw.githubusercontent.com/D34THXZ/userscripts/refs/heads/main/substream.user.js" target="_blank">SubStream Userscript</a>] This let's you scan the a website for vtt's and m3u8's. Works well on Streaming websites like HiAnime.</li>
             </ul>
         </div>
 
-        <div class="how-links">
-            <h3>🔗 Example Links</h3>
-            <div class="how-link" onclick="loadExampleVideo('https://raw.githubusercontent.com/D34THXZ/userscripts/refs/heads/main/substream.user.js')">
-                Subtitle and Stream Link Scanner
-            </div>
-            <div class="desc-link">
-                This let's you scan the page for vtt's and m3u8's. Works well on Streaming websites like HiAnime.
-            </div>
-            <p style="font-size: 0.9em; color: #666;">Click on a link to automatically install the script.</p>
-        </div>
 
         <div class="input-group">
             <label for="videoUrl">M3U8 Video URL:</label>
@@ -188,11 +153,6 @@
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);
-        }
-
-        function loadExampleVideo(url) {
-            document.getElementById('videoUrl').value = url;
-            loadVideo();
         }
 
         function initPlayer() {
