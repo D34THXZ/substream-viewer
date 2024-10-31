@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+<!-- Previous head and style sections remain the same -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player Using Stats, HLS, and Plyr.js</title>
+    <title>Video Player with Plyr.js, HLS and Stats</title>
     
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.css">
     
     <style>
+        /* Previous styles remain the same */
         body {
             margin: 0;
             padding: 20px;
@@ -182,20 +184,20 @@
                     <div id="bandwidth" class="stats-value">0 kb/s</div>
                 </div>
                 <div class="stats-item">
-                    <h3>Current Level</h3>
-                    <div id="currentLevel" class="stats-value">0</div>
+                    <h3>Current Quality</h3>
+                    <div id="currentLevel" class="stats-value">-</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Current FPS</h3>
+                    <div id="currentFps" class="stats-value">0</div>
                 </div>
                 <div class="stats-item">
                     <h3>Dropped Frames</h3>
                     <div id="droppedFrames" class="stats-value">0</div>
                 </div>
                 <div class="stats-item">
-                    <h3>Total Loaded</h3>
-                    <div id="totalLoaded" class="stats-value">0 MB</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Current Latency</h3>
-                    <div id="currentLatency" class="stats-value">0s</div>
+                    <h3>Load Speed</h3>
+                    <div id="downloadSpeed" class="stats-value">0 kb/s</div>
                 </div>
             </div>
         </div>
@@ -222,8 +224,9 @@
         function updateStats() {
             if (!hls) return;
 
-            // Update buffer length
             const video = document.querySelector('#player');
+            
+            // Update buffer length
             if (video) {
                 const buffered = video.buffered;
                 let bufferLength = 0;
@@ -235,26 +238,47 @@
 
             // Update bandwidth
             const bandwidth = hls.bandwidthEstimate;
-            document.getElementById('bandwidth').textContent = `${Math.round(bandwidth / 1024)} kb/s`;
+            document.getElementById('bandwidth').textContent = 
+                bandwidth ? `${Math.round(bandwidth / 1024)} kb/s` : 'N/A';
 
-            // Update current level
+            // Update current level (quality)
             const currentLevel = hls.currentLevel;
-            document.getElementById('currentLevel').textContent = currentLevel;
+            const levels = hls.levels;
+            if (currentLevel >= 0 && levels && levels[currentLevel]) {
+                const height = levels[currentLevel].height;
+                document.getElementById('currentLevel').textContent = 
+                    `${height}p`;
+            } else {
+                document.getElementById('currentLevel').textContent = 'Auto';
+            }
+
+            // Update FPS if available
+            if (levels && levels[currentLevel]) {
+                const fps = levels[currentLevel].fps;
+                document.getElementById('currentFps').textContent = 
+                    fps ? `${Math.round(fps)}` : 'N/A';
+            }
 
             // Update dropped frames
             if (video.webkitDroppedFrameCount !== undefined) {
-                document.getElementById('droppedFrames').textContent = video.webkitDroppedFrameCount;
+                document.getElementById('droppedFrames').textContent = 
+                    video.webkitDroppedFrameCount;
             } else if (video.mozDroppedFrames !== undefined) {
-                document.getElementById('droppedFrames').textContent = video.mozDroppedFrames;
+                document.getElementById('droppedFrames').textContent = 
+                    video.mozDroppedFrames;
             }
 
-            // Update total loaded
-            const totalLoaded = hls.stats.loaded;
-            document.getElementById('totalLoaded').textContent = `${(totalLoaded / (1024 * 1024)).toFixed(2)} MB`;
-
-            // Update latency
-            if (hls.latency) {
-                document.getElementById('currentLatency').textContent = `${hls.latency.toFixed(1)}s`;
+            // Calculate and update download speed based on recent fragments
+            if (hls.stats) {
+                const stats = hls.stats;
+                let downloadSpeed = 0;
+                
+                if (stats.parsing && stats.parsing.total) {
+                    downloadSpeed = (stats.parsing.total * 8) / 1024; // Convert to kbps
+                }
+                
+                document.getElementById('downloadSpeed').textContent = 
+                    `${Math.round(downloadSpeed)} kb/s`;
             }
         }
 
