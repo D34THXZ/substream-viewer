@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player with Plyr.js and HLS</title>
+    <title>Video Player Using Stats, HLS, and Plyr.js</title>
     
     <!-- Plyr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.css">
@@ -95,6 +95,39 @@
             border-radius: 4px;
             display: none;
         }
+
+        /* Stats Panel Styles */
+        #statsPanel {
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stats-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stats-item h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .stats-value {
+            font-family: monospace;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -118,7 +151,6 @@
             </ul>
         </div>
 
-
         <div class="input-group">
             <label for="videoUrl">M3U8 Video URL:</label>
             <input type="text" id="videoUrl" placeholder="Enter m3u8 video URL">
@@ -136,6 +168,37 @@
         <video id="player" playsinline controls crossorigin>
             <source type="application/x-mpegURL">
         </video>
+
+        <!-- Stats Panel -->
+        <div id="statsPanel">
+            <h2>HLS Statistics</h2>
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <h3>Buffer Length</h3>
+                    <div id="bufferLength" class="stats-value">0s</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Bandwidth</h3>
+                    <div id="bandwidth" class="stats-value">0 kb/s</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Current Level</h3>
+                    <div id="currentLevel" class="stats-value">0</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Dropped Frames</h3>
+                    <div id="droppedFrames" class="stats-value">0</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Total Loaded</h3>
+                    <div id="totalLoaded" class="stats-value">0 MB</div>
+                </div>
+                <div class="stats-item">
+                    <h3>Current Latency</h3>
+                    <div id="currentLatency" class="stats-value">0s</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Load scripts in correct order with defer -->
@@ -145,6 +208,7 @@
     <script>
         let player;
         let hls;
+        let statsInterval;
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
@@ -153,6 +217,45 @@
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);
+        }
+
+        function updateStats() {
+            if (!hls) return;
+
+            // Update buffer length
+            const video = document.querySelector('#player');
+            if (video) {
+                const buffered = video.buffered;
+                let bufferLength = 0;
+                if (buffered.length > 0) {
+                    bufferLength = buffered.end(buffered.length - 1) - video.currentTime;
+                }
+                document.getElementById('bufferLength').textContent = `${bufferLength.toFixed(1)}s`;
+            }
+
+            // Update bandwidth
+            const bandwidth = hls.bandwidthEstimate;
+            document.getElementById('bandwidth').textContent = `${Math.round(bandwidth / 1024)} kb/s`;
+
+            // Update current level
+            const currentLevel = hls.currentLevel;
+            document.getElementById('currentLevel').textContent = currentLevel;
+
+            // Update dropped frames
+            if (video.webkitDroppedFrameCount !== undefined) {
+                document.getElementById('droppedFrames').textContent = video.webkitDroppedFrameCount;
+            } else if (video.mozDroppedFrames !== undefined) {
+                document.getElementById('droppedFrames').textContent = video.mozDroppedFrames;
+            }
+
+            // Update total loaded
+            const totalLoaded = hls.stats.loaded;
+            document.getElementById('totalLoaded').textContent = `${(totalLoaded / (1024 * 1024)).toFixed(2)} MB`;
+
+            // Update latency
+            if (hls.latency) {
+                document.getElementById('currentLatency').textContent = `${hls.latency.toFixed(1)}s`;
+            }
         }
 
         function initPlayer() {
@@ -193,6 +296,11 @@
             const videoUrl = document.querySelector('#videoUrl').value.trim();
             const subtitleUrl = document.querySelector('#subtitleUrl').value.trim();
 
+            // Clear existing stats interval
+            if (statsInterval) {
+                clearInterval(statsInterval);
+            }
+
             if (!videoUrl) {
                 showError('Please enter a video URL');
                 return;
@@ -221,6 +329,9 @@
                         video.play().catch(e => {
                             console.log('Auto-play prevented:', e);
                         });
+                        
+                        // Start stats updates
+                        statsInterval = setInterval(updateStats, 1000);
                     });
 
                     // Handle HLS errors
