@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player with Plyr.js and HLS</title>
+    
+    <!-- Plyr CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #player {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #dc3545;
+            border-radius: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-group">
+            <label for="videoUrl">M3U8 Video URL:</label>
+            <input type="text" id="videoUrl" placeholder="Enter m3u8 video URL">
+        </div>
+        
+        <div class="input-group">
+            <label for="subtitleUrl">VTT Subtitle URL (optional):</label>
+            <input type="text" id="subtitleUrl" placeholder="Enter VTT subtitle URL">
+        </div>
+        
+        <button onclick="loadVideo()">Load Video</button>
+        
+        <div id="errorMessage" class="error-message"></div>
+
+        <video id="player" playsinline controls crossorigin>
+            <source type="application/x-mpegURL">
+        </video>
+    </div>
+
+    <!-- Load scripts in correct order with defer -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.polyfilled.min.js"></script>
+    
+    <script>
+        let player;
+        let hls;
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function initPlayer() {
+            const video = document.querySelector('#player');
+            
+            // Initialize Plyr with more specific options
+            player = new Plyr(video, {
+                captions: { active: true, update: true, language: 'en' },
+                controls: [
+                    'play-large',
+                    'restart',
+                    'rewind',
+                    'play',
+                    'fast-forward',
+                    'progress',
+                    'current-time',
+                    'duration',
+                    'mute',
+                    'volume',
+                    'captions',
+                    'settings',
+                    'pip',
+                    'airplay',
+                    'fullscreen'
+                ],
+                loadSprite: true,
+                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.svg',
+                blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
+            });
+
+            player.on('error', (event) => {
+                showError('Player error: ' + event.detail.message);
+            });
+        }
+
+        function loadVideo() {
+            const video = document.querySelector('#player');
+            const videoUrl = document.querySelector('#videoUrl').value.trim();
+            const subtitleUrl = document.querySelector('#subtitleUrl').value.trim();
+
+            if (!videoUrl) {
+                showError('Please enter a video URL');
+                return;
+            }
+
+            try {
+                // Destroy previous HLS instance if exists
+                if (hls) {
+                    hls.destroy();
+                }
+
+                // Check if HLS is supported
+                if (Hls.isSupported()) {
+                    hls = new Hls({
+                        debug: false,
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+
+                    hls.loadSource(videoUrl);
+                    hls.attachMedia(video);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                        console.log('Video manifest loaded');
+                        video.play().catch(e => {
+                            console.log('Auto-play prevented:', e);
+                        });
+                    });
+
+                    // Handle HLS errors
+                    hls.on(Hls.Events.ERROR, function(event, data) {
+                        if (data.fatal) {
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    showError('Network error: Please check your connection and the video URL');
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    showError('Media error: Attempting to recover');
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    showError('Fatal error: ' + data.details);
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+                }
+                // For browsers that natively support HLS
+                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = videoUrl;
+                } else {
+                    showError('HLS is not supported in your browser');
+                }
+
+                // Handle subtitles
+                if (subtitleUrl) {
+                    // Remove existing tracks
+                    while (video.firstChild) {
+                        video.removeChild(video.firstChild);
+                    }
+
+                    const track = document.createElement('track');
+                    track.kind = 'captions';
+                    track.label = 'English';
+                    track.srclang = 'en';
+                    track.src = subtitleUrl;
+                    track.default = true;
+                    
+                    video.appendChild(track);
+                }
+            } catch (error) {
+                showError('Error initializing player: ' + error.message);
+                console.error('Player initialization error:', error);
+            }
+        }
+
+        // Wait for all scripts to load before initializing
+        window.addEventListener('load', function() {
+            // Check if required libraries are loaded
+            if (typeof Plyr === 'undefined' || typeof Hls === 'undefined') {
+                showError('Required libraries failed to load. Please refresh the page.');
+                return;
+            }
+            initPlayer();
+        });
+    </script>
+</body>
+</html>
