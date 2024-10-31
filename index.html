@@ -29,6 +29,53 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+        .instructions {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .instructions h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .how-links {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .how-links h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .how-link {
+            display: block;
+            margin: 10px 0;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .how-link:hover {
+            background: #e9ecef;
+        }
+
         .input-group {
             margin-bottom: 15px;
         }
@@ -78,6 +125,35 @@
 </head>
 <body>
     <div class="container">
+        <div class="instructions">
+            <h2>📝 How to Use This Player</h2>
+            <ul>
+                <li><strong>Video URL:</strong> Enter an M3U8 stream URL in the first input field. This should be a direct link to a .m3u8 file.</li>
+                <li><strong>Subtitles:</strong> Optionally, enter a VTT subtitle file URL in the second field.</li>
+                <li><strong>Controls:</strong> Use the player controls for:
+                    <ul>
+                        <li>Play/Pause</li>
+                        <li>Volume adjustment</li>
+                        <li>Full screen</li>
+                        <li>Subtitle toggle (if available)</li>
+                        <li>Playback speed adjustment</li>
+                    </ul>
+                </li>
+                <li><strong>Note:</strong> Make sure your M3U8 stream URL is accessible and allows CORS.</li>
+            </ul>
+        </div>
+
+        <div class="how-links">
+            <h3>🔗 Example Links</h3>
+            <div class="how-link" onclick="loadExampleVideo('https://raw.githubusercontent.com/D34THXZ/userscripts/refs/heads/main/substream.user.js')">
+                Subtitle and Stream Link Scanner
+            </div>
+            <div class="desc-link">
+                This let's you scan the page for vtt's and m3u8's. Works well on Streaming websites like HiAnime.
+            </div>
+            <p style="font-size: 0.9em; color: #666;">Click on a link to automatically install the script.</p>
+        </div>
+
         <div class="input-group">
             <label for="videoUrl">M3U8 Video URL:</label>
             <input type="text" id="videoUrl" placeholder="Enter m3u8 video URL">
@@ -112,6 +188,11 @@
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);
+        }
+
+        function loadExampleVideo(url) {
+            document.getElementById('videoUrl').value = url;
+            loadVideo();
         }
 
         function initPlayer() {
