@@ -1,0 +1,28 @@
+{
+    "lists-packs": [
+        {
+            "title": "Jujutsu Kaisen Season 2",
+            "description": "The year is 2006, and the halls of Tokyo Prefectural Jujutsu High School echo with the endless bickering and intense debate between two inseparable best friends.",
+            "episodes": {
+                "ep1": "https://g4fv.biananset.net/_v7/c81e0320ba619de237ee247b52d3bdb125d2e6f8f49bde94765ddd259c441a7b92faaefc4917c4cbabf53cd36a63cfbec26505f439fcd2525310c275b3d7942932d3fcd5136d9a931f75ab667445d747e83a25d5a0d2dc0b98cb173c2015d2a62fe269a51444cf298e96fd54102abaf736138682fa5dbdfbd4ff5712f296e2a3/master.m3u8",
+                "ep2": "https://tt57.biananset.net/_v7/94b9952e962b63cabf3b7cfbe6a57487d993cd32f2f45a2fc9b352a0b4c5c7ff9ec03239b06e5182786e4570f93be1408094ab189d9e268322b9e2b71e89a931f66a59ed62bbb320899b7e1aa7e6042d338360caed6f1d58faf11df1061dc20ecb9a2dbbb9a495b0a886f18ac26bdbb8cf3cbc5b890dd8d81ba651e835d2692b/master.m3u8"
+            },
+            "subtitles": {
+                "sub1": "https://s.megastatics.com/subtitle/6117ae531d650ab89c98e6bcbb93725e/6117ae531d650ab89c98e6bcbb93725e.vtt",
+                "sub2": "https://s.megastatics.com/subtitle/ec5a7716062104850bc950a21e49f912/ec5a7716062104850bc950a21e49f912.vtt"
+            }
+        },
+        {
+            "title": "PNG Lock",
+            "description": "Animation with presentation transitions and capcut effects, and beginner cgi. [i know it was made very quick]",
+            "episodes": {
+                "ep1": "https://wf1.biananset.net/_v7/39ae99abbb9737c437f64f852b7794c4f76024f68371dd6a2016c1df7a00c0025cc6b57fd388bcba1af69a5b3ecb2f5be8458e1b80256fabaa498208aa7a6a0fab03f9a8d60f61a036f247a9f96600ecc4f0891fcd5301944587bc6d9a9363afdaf7ad28c9cb31bae637e5218dd87d4040b08c66d7550c8f85f40f0aabe07916/master.m3u8",
+                "ep2": "https://g4fv.biananset.net/_v7/2666b8a2b278f50d0dad33e5feb5ec6bdc9576a61612e59d4b7a6e2cb25177db49a80f633ba76268d906344c0b853d1274703c1329ae89c55afea985f92bfd9bc6f951668068d4e7de03c5f3a8b75453ccc42cbed58dd15140d16bf30bb9f4c8b0c68bd7ffc6e612c9bd3a013320d0abe54b6d689c336e5edf7ea667fb4b30a0/master.m3u8"
+            },
+            "subtitles": {
+                "sub1": "https://s.megastatics.com/subtitle/d6cb4a8dd35dbc90ab8ef64aa38916b8/eng-2.vtt",
+                "sub2": "https://s.megastatics.com/subtitle/3e28fc1521f7cd7670c743c49d5a4032/eng-2.vtt"
+            }
+        }
+    ]
+}
