@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamScanner PACKS</title>
+    <title>Card List</title>
     <style>
         * {
             margin: 0;
@@ -59,11 +59,19 @@
         .card a {
             color: #1e90ff;
             text-decoration: none;
-            cursor: pointer;
+            cursor: pointer; /* Change cursor to pointer for links */
         }
 
         .card a:hover {
-            text-decoration: underline;
+            text-decoration: underline; /* Underline links on hover */
+        }
+
+        .card code {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-family: monospace;
+            color: #ff9800;
         }
     </style>
 </head>
@@ -71,11 +79,11 @@
     <div class="container" id="cardContainer"></div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            fetch('data.json')
+            fetch('./data.json')
                 .then(response => response.json())
                 .then(data => {
                     const cardContainer = document.getElementById('cardContainer');
-                    const packs = data["lists-packs"];
+                    const packs = data["lists-packs"]; // Accessing the lists-packs array
 
                     packs.forEach(item => {
                         const card = document.createElement('div');
@@ -90,22 +98,24 @@
                         const episodesList = document.createElement('ul');
                         const subtitlesList = document.createElement('ul');
 
+                        // Creating episode links with <code> styling
                         for (const [key, url] of Object.entries(item.episodes)) {
                             const listItem = document.createElement('li');
                             const link = document.createElement('a');
-                            link.innerText = `Episode: ${key}`;
-                            link.dataset.url = url;
-                            link.addEventListener('click', () => copyToClipboard(url));
+                            link.innerHTML = `Episode: ${key} - <code>${url}</code>`;
+                            link.dataset.url = url; // Store URL in data attribute
+                            link.addEventListener('click', () => copyToClipboard(url)); // Copy URL on click
                             listItem.appendChild(link);
                             episodesList.appendChild(listItem);
                         }
 
+                        // Creating subtitle links with <code> styling
                         for (const [key, url] of Object.entries(item.subtitles)) {
                             const listItem = document.createElement('li');
                             const link = document.createElement('a');
-                            link.innerText = `Subtitle: ${key}`;
-                            link.dataset.url = url; 
-                            link.addEventListener('click', () => copyToClipboard(url)); 
+                            link.innerHTML = `Subtitle: ${key} - <code>${url}</code>`;
+                            link.dataset.url = url; // Store URL in data attribute
+                            link.addEventListener('click', () => copyToClipboard(url)); // Copy URL on click
                             listItem.appendChild(link);
                             subtitlesList.appendChild(listItem);
                         }
@@ -123,6 +133,7 @@
                 .catch(error => console.error('Error fetching the JSON data:', error));
         });
 
+        // Function to copy text to clipboard
         function copyToClipboard(url) {
             navigator.clipboard.writeText(url).then(() => {
                 alert(`Copied to clipboard: ${url}`);
