@@ -415,6 +415,28 @@
             }
             initPlayer();
         });
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        function handleFullScreenChange() {
+	        if (isMobile) {
+		        if (document.fullscreenElement) {
+			        if (screen.orientation && screen.orientation.lock) {
+				        screen.orientation.lock('landscape').catch((err) => {
+					        console.warn('Failed to lock orientation:', err);
+				        });
+			        }
+		        } else {
+			        if (screen.orientation && screen.orientation.unlock) {
+				        screen.orientation.unlock().catch((err) => {
+					        console.warn('Failed to unlock orientation:', err);
+				        });
+			        }
+		        }
+	        }
+        }
+
+        document.addEventListener('fullscreenchange', handleFullScreenChange);
     </script>
 </body>
 </html>
