@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamScanner PACKS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1200px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            width: 300px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card h3 {
+            margin: 10px 0;
+        }
+
+        .card p {
+            font-size: 0.9em;
+            color: #ccc;
+        }
+
+        .card ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .card a {
+            color: #1e90ff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="cardContainer"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    const cardContainer = document.getElementById('cardContainer');
+                    const packs = data["lists-packs"];
+
+                    packs.forEach(item => {
+                        const card = document.createElement('div');
+                        card.classList.add('card');
+
+                        const cardTitle = document.createElement('h3');
+                        cardTitle.innerText = item.title;
+
+                        const cardDescription = document.createElement('p');
+                        cardDescription.innerText = item.description;
+
+                        const episodesList = document.createElement('ul');
+                        const subtitlesList = document.createElement('ul');
+
+                        for (const [key, url] of Object.entries(item.episodes)) {
+                            const listItem = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.innerText = `Episode: ${key}`;
+                            link.dataset.url = url;
+                            link.addEventListener('click', () => copyToClipboard(url));
+                            listItem.appendChild(link);
+                            episodesList.appendChild(listItem);
+                        }
+
+                        for (const [key, url] of Object.entries(item.subtitles)) {
+                            const listItem = document.createElement('li');
+                            const link = document.createElement('a');
+                            link.innerText = `Subtitle: ${key}`;
+                            link.dataset.url = url; 
+                            link.addEventListener('click', () => copyToClipboard(url)); 
+                            listItem.appendChild(link);
+                            subtitlesList.appendChild(listItem);
+                        }
+
+                        card.appendChild(cardTitle);
+                        card.appendChild(cardDescription);
+                        card.appendChild(document.createElement('h4')).innerText = "Episodes:";
+                        card.appendChild(episodesList);
+                        card.appendChild(document.createElement('h4')).innerText = "Subtitles:";
+                        card.appendChild(subtitlesList);
+                        
+                        cardContainer.appendChild(card);
+                    });
+                })
+                .catch(error => console.error('Error fetching the JSON data:', error));
+        });
+
+        function copyToClipboard(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert(`Copied to clipboard: ${url}`);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
