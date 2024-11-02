@@ -1,442 +1,513 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Previous head and style sections remain the same -->
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Player with Plyr.js, HLS and Stats</title>
-    
-    <!-- Plyr CSS -->
+    <title>Modern Video Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.css">
-    
     <style>
-        /* Previous styles remain the same */
-        body {
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            background: #f0f0f0;
-            font-family: Arial, sans-serif;
+      :root {
+        --bg-primary: #0f172a;
+        --glass-bg: rgba(30, 41, 59, 0.7);
+        --glass-card: rgba(30, 41, 59, 0.95);
+        --accent: #8b5cf6;
+        --text-primary: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --success: #10b981;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, var(--bg-primary) 0%, #1e293b 50%, var(--bg-primary) 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 15s ease infinite;
+        min-height: 100vh;
+        color: var(--text-primary);
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        backdrop-filter: blur(12px);
+        background: var(--glass-bg);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transform: translateY(20px);
+        opacity: 0;
+        animation: slideUp 0.6s ease forwards;
+      }
+
+      .instructions {
+        background: var(--glass-card);
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .instructions:hover {
+        transform: translateY(-2px);
+      }
+
+      .instructions h2 {
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+      }
+
+      .instructions ul {
+        list-style: none;
+        padding-left: 1rem;
+      }
+
+      .instructions li {
+        margin: 0.75rem 0;
+        color: var(--text-secondary);
+        position: relative;
+      }
+
+      .instructions li::before {
+        content: "•";
+        color: var(--accent);
+        position: absolute;
+        left: -1rem;
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .input-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: var(--glass-card);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+      }
+
+      button {
+        background: var(--accent);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+
+      #player {
+        width: 100%;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .error-message {
+        background: rgba(220, 38, 38, 0.2);
+        color: #fecaca;
+        padding: 1rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        border: 1px solid rgba(220, 38, 38, 0.3);
+        display: none;
+        animation: slideIn 0.3s ease;
+      }
+
+      #statsPanel {
+        margin-top: 2rem;
+        background: var(--glass-card);
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      .stats-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease;
+      }
+
+      .stats-item:hover {
+        transform: translateY(-2px);
+      }
+
+      .stats-item h3 {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .stats-value {
+        color: var(--accent);
+        font-family: monospace;
+        font-size: 1.125rem;
+      }
+
+      @keyframes gradientShift {
+        0% {
+          background-position: 0% 50%;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        50% {
+          background-position: 100% 50%;
         }
 
-        .instructions {
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      @keyframes slideUp {
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
         }
 
-        .instructions h2 {
-            margin-top: 0;
-            color: #2c3e50;
+        to {
+          transform: translateX(0);
+          opacity: 1;
         }
+      }
 
-        .instructions ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
+      /* Custom Scrollbar Styles */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
 
-        .instructions li {
-            margin-bottom: 8px;
-        }
+      ::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.6);
+        /* Matches your dark theme */
+        border-radius: 8px;
+      }
 
-        .input-group {
-            margin-bottom: 15px;
-        }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, rgba(139, 92, 246, 0.8), rgba(124, 58, 237, 0.8));
+        /* Uses your accent color */
+        border-radius: 8px;
+        border: 2px solid rgba(15, 23, 42, 0.6);
+      }
 
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+      ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(to bottom, rgba(139, 92, 246, 1), rgba(124, 58, 237, 1));
+      }
 
-        .input-group input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background: #0056b3;
-        }
-
-        #player {
-            width: 100%;
-        }
-
-        .error-message {
-            color: #dc3545;
-            margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #dc3545;
-            border-radius: 4px;
-            display: none;
-        }
-
-        /* Stats Panel Styles */
-        #statsPanel {
-            margin-top: 20px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .stats-item {
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .stats-item h3 {
-            margin: 0 0 8px 0;
-            font-size: 14px;
-            color: #2c3e50;
-        }
-
-        .stats-value {
-            font-family: monospace;
-            color: #007bff;
-        }
+      /* For Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #8b5cf6 rgba(15, 23, 42, 0.6);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="instructions">
-            <h2>📝 How to Use This Player</h2>
-            <ul>
-                <li><strong>Video URL:</strong> Enter an M3U8 stream URL in the first input field. This should be a direct link to a .m3u8 file.</li>
-                <li><strong>Subtitles:</strong> Optionally, enter a VTT subtitle file URL in the second field.</li>
-                <li><strong>Controls:</strong> Use the player controls for:
-                    <ul>
-                        <li>Play/Pause</li>
-                        <li>Volume adjustment</li>
-                        <li>Full screen</li>
-                        <li>Subtitle toggle (if available)</li>
-                        <li>Playback speed adjustment</li>
-                    </ul>
-                </li>
-                <li><strong>Note:</strong> Make sure your M3U8 stream URL is accessible and allows CORS.</li>
-                <li><strong>!Important! Userscript:</strong> [<a href="https://raw.githubusercontent.com/D34THXZ/userscripts/refs/heads/main/substream.user.js" target="_blank">SubStream Userscript</a>] This let's you scan the a website for vtt's and m3u8's. Works well on Streaming websites like HiAnime.</li>
-            </ul>
+      <div class="instructions">
+        <h2>📽️ Modern Video Player</h2>
+        <ul>
+          <li>Supports M3U8 streams and MP4 videos</li>
+          <li>Compatible with VTT and SRT subtitles</li>
+          <li>Real-time playback statistics</li>
+          <li>Adaptive quality streaming</li>
+        </ul>
+      </div>
+      <div class="input-group">
+        <label for="videoUrl">Video URL (M3U8/MP4):</label>
+        <input type="text" id="videoUrl" placeholder="Enter video URL">
+      </div>
+      <div class="input-group">
+        <label for="subtitleUrl">Subtitle URL (VTT/SRT):</label>
+        <input type="text" id="subtitleUrl" placeholder="Enter subtitle URL">
+      </div>
+      <button onclick="loadVideo()">Load Video</button>
+      <div id="errorMessage" class="error-message"></div>
+      <video id="player" playsinline controls crossorigin>
+        <source type="application/x-mpegURL">
+      </video>
+      <div id="statsPanel">
+        <h2>Playback Statistics</h2>
+        <div class="stats-grid">
+          <div class="stats-item">
+            <h3>Buffer Length</h3>
+            <div id="bufferLength" class="stats-value">0s</div>
+          </div>
+          <div class="stats-item">
+            <h3>Bandwidth</h3>
+            <div id="bandwidth" class="stats-value">0 kb/s</div>
+          </div>
+          <div class="stats-item">
+            <h3>Quality</h3>
+            <div id="currentLevel" class="stats-value">-</div>
+          </div>
+          <div class="stats-item">
+            <h3>FPS</h3>
+            <div id="currentFps" class="stats-value">0</div>
+          </div>
+          <div class="stats-item">
+            <h3>Dropped Frames</h3>
+            <div id="droppedFrames" class="stats-value">0</div>
+          </div>
+          <div class="stats-item">
+            <h3>Download Speed</h3>
+            <div id="downloadSpeed" class="stats-value">0 kb/s</div>
+          </div>
         </div>
-
-        <div class="input-group">
-            <label for="videoUrl">M3U8 Video URL:</label>
-            <input type="text" id="videoUrl" placeholder="Enter m3u8 video URL">
-        </div>
-        
-        <div class="input-group">
-            <label for="subtitleUrl">VTT Subtitle URL (optional):</label>
-            <input type="text" id="subtitleUrl" placeholder="Enter VTT subtitle URL">
-        </div>
-        
-        <button onclick="loadVideo()">Load Video</button>
-        
-        <div id="errorMessage" class="error-message"></div>
-
-        <video id="player" playsinline controls crossorigin>
-            <source type="application/x-mpegURL">
-        </video>
-
-        <!-- Stats Panel -->
-        <div id="statsPanel">
-            <h2>HLS Statistics</h2>
-            <div class="stats-grid">
-                <div class="stats-item">
-                    <h3>Buffer Length</h3>
-                    <div id="bufferLength" class="stats-value">0s</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Bandwidth</h3>
-                    <div id="bandwidth" class="stats-value">0 kb/s</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Current Quality</h3>
-                    <div id="currentLevel" class="stats-value">-</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Current FPS</h3>
-                    <div id="currentFps" class="stats-value">0</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Dropped Frames</h3>
-                    <div id="droppedFrames" class="stats-value">0</div>
-                </div>
-                <div class="stats-item">
-                    <h3>Load Speed</h3>
-                    <div id="downloadSpeed" class="stats-value">0 kb/s</div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-
-    <!-- Load scripts in correct order with defer -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.polyfilled.min.js"></script>
-    
     <script>
-        let player;
-        let hls;
-        let statsInterval;
+      let player;
+      let hls;
+      let statsInterval;
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+      function convertSrtToVtt(srtUrl) {
+        return fetch(srtUrl).then(response => response.text()).then(srtContent => {
+          // Convert SRT to VTT format
+          const vttContent = 'WEBVTT\n\n' + srtContent.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+          const blob = new Blob([vttContent], {
+            type: 'text/vtt'
+          });
+          return URL.createObjectURL(blob);
+        });
+      }
+
+      function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+          errorDiv.style.animation = 'slideIn 0.3s reverse';
+          setTimeout(() => errorDiv.style.display = 'none', 300);
+        }, 5000);
+      }
+
+      function updateStats() {
+        if (!hls) return;
+        const video = document.querySelector('#player');
+        // Buffer length
+        if (video?.buffered?.length > 0) {
+          const bufferLength = video.buffered.end(video.buffered.length - 1) - video.currentTime;
+          document.getElementById('bufferLength').textContent = `${bufferLength.toFixed(1)}s`;
         }
-
-        function updateStats() {
-            if (!hls) return;
-
-            const video = document.querySelector('#player');
-            
-            // Update buffer length
-            if (video) {
-                const buffered = video.buffered;
-                let bufferLength = 0;
-                if (buffered.length > 0) {
-                    bufferLength = buffered.end(buffered.length - 1) - video.currentTime;
-                }
-                document.getElementById('bufferLength').textContent = `${bufferLength.toFixed(1)}s`;
-            }
-
-            // Update bandwidth
-            const bandwidth = hls.bandwidthEstimate;
-            document.getElementById('bandwidth').textContent = 
-                bandwidth ? `${Math.round(bandwidth / 1024)} kb/s` : 'N/A';
-
-            // Update current level (quality)
-            const currentLevel = hls.currentLevel;
-            const levels = hls.levels;
-            if (currentLevel >= 0 && levels && levels[currentLevel]) {
-                const height = levels[currentLevel].height;
-                document.getElementById('currentLevel').textContent = 
-                    `${height}p`;
-            } else {
-                document.getElementById('currentLevel').textContent = 'Auto';
-            }
-
-            // Update FPS if available
-            if (levels && levels[currentLevel]) {
-                const fps = levels[currentLevel].fps;
-                document.getElementById('currentFps').textContent = 
-                    fps ? `${Math.round(fps)}` : 'N/A';
-            }
-
-            // Update dropped frames
-            if (video.webkitDroppedFrameCount !== undefined) {
-                document.getElementById('droppedFrames').textContent = 
-                    video.webkitDroppedFrameCount;
-            } else if (video.mozDroppedFrames !== undefined) {
-                document.getElementById('droppedFrames').textContent = 
-                    video.mozDroppedFrames;
-            }
-
-            // Calculate and update download speed based on recent fragments
-            if (hls.stats) {
-                const stats = hls.stats;
-                let downloadSpeed = 0;
-                
-                if (stats.parsing && stats.parsing.total) {
-                    downloadSpeed = (stats.parsing.total * 8) / 1024; // Convert to kbps
-                }
-                
-                document.getElementById('downloadSpeed').textContent = 
-                    `${Math.round(downloadSpeed)} kb/s`;
-            }
-        }
-
-        function initPlayer() {
-            const video = document.querySelector('#player');
-            
-            // Initialize Plyr with more specific options
-            player = new Plyr(video, {
-                captions: { active: true, update: true, language: 'en' },
-                controls: [
-                    'play-large',
-                    'restart',
-                    'rewind',
-                    'play',
-                    'fast-forward',
-                    'progress',
-                    'current-time',
-                    'duration',
-                    'mute',
-                    'volume',
-                    'captions',
-                    'settings',
-                    'pip',
-                    'airplay',
-                    'fullscreen'
-                ],
-                loadSprite: true,
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.svg',
-                blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
+        // Bandwidth
+        document.getElementById('bandwidth').textContent = hls.bandwidthEstimate ? `${Math.round(hls.bandwidthEstimate / 1024)} kb/s` : 'N/A';
+        // Quality level
+        const currentLevel = hls.currentLevel;
+        const levels = hls.levels;
+        document.getElementById('currentLevel').textContent = (currentLevel >= 0 && levels?.[currentLevel]?.height) ? `${levels[currentLevel].height}p` : 'Auto';
+        // FPS
+        document.getElementById('currentFps').textContent = levels?.[currentLevel]?.fps ? Math.round(levels[currentLevel].fps) : 'N/A';
+        // Dropped frames
+        document.getElementById('droppedFrames').textContent = video.webkitDroppedFrameCount ?? video.mozDroppedFrames ?? 0;
+        // Download speed
+        const downloadSpeed = hls.stats?.parsing?.total ? (hls.stats.parsing.total * 8) / 1024 : 0;
+        document.getElementById('downloadSpeed').textContent = `${Math.round(downloadSpeed)} kb/s`;
+      }
+      async function loadVideo() {
+        const video = document.querySelector('#player');
+        const videoUrl = document.querySelector('#videoUrl').value.trim();
+        const subtitleUrl = document.querySelector('#subtitleUrl').value.trim();
+        if (statsInterval) clearInterval(statsInterval);
+        if (!videoUrl) return showError('Please enter a video URL');
+        try {
+          if (hls) hls.destroy();
+          const isHLS = videoUrl.includes('.m3u8');
+          if (isHLS && Hls.isSupported()) {
+            hls = new Hls({
+              debug: false,
+              enableWorker: true,
+              lowLatencyMode: true,
+              backBufferLength: 90
             });
-
-            player.on('error', (event) => {
-                showError('Player error: ' + event.detail.message);
+            hls.loadSource(videoUrl);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              video.play().catch(console.log);
+              statsInterval = setInterval(updateStats, 1000);
             });
-        }
-
-        function loadVideo() {
-            const video = document.querySelector('#player');
-            const videoUrl = document.querySelector('#videoUrl').value.trim();
-            const subtitleUrl = document.querySelector('#subtitleUrl').value.trim();
-
-            // Clear existing stats interval
-            if (statsInterval) {
-                clearInterval(statsInterval);
-            }
-
-            if (!videoUrl) {
-                showError('Please enter a video URL');
-                return;
-            }
-
-            try {
-                // Destroy previous HLS instance if exists
-                if (hls) {
+            hls.on(Hls.Events.ERROR, (_, data) => {
+              if (data.fatal) {
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    showError('Network error: Please check your connection');
+                    hls.startLoad();
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    showError('Media error: Attempting to recover');
+                    hls.recoverMediaError();
+                    break;
+                  default:
+                    showError('Fatal error: ' + data.details);
                     hls.destroy();
                 }
-
-                // Check if HLS is supported
-                if (Hls.isSupported()) {
-                    hls = new Hls({
-                        debug: false,
-                        enableWorker: true,
-                        lowLatencyMode: true,
-                        backBufferLength: 90
-                    });
-
-                    hls.loadSource(videoUrl);
-                    hls.attachMedia(video);
-
-                    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                        console.log('Video manifest loaded');
-                        video.play().catch(e => {
-                            console.log('Auto-play prevented:', e);
-                        });
-                        
-                        // Start stats updates
-                        statsInterval = setInterval(updateStats, 1000);
-                    });
-
-                    // Handle HLS errors
-                    hls.on(Hls.Events.ERROR, function(event, data) {
-                        if (data.fatal) {
-                            switch(data.type) {
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-                                    showError('Network error: Please check your connection and the video URL');
-                                    hls.startLoad();
-                                    break;
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-                                    showError('Media error: Attempting to recover');
-                                    hls.recoverMediaError();
-                                    break;
-                                default:
-                                    showError('Fatal error: ' + data.details);
-                                    hls.destroy();
-                                    break;
-                            }
-                        }
-                    });
-                }
-                // For browsers that natively support HLS
-                else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                    video.src = videoUrl;
-                } else {
-                    showError('HLS is not supported in your browser');
-                }
-
-                // Handle subtitles
-                if (subtitleUrl) {
-                    // Remove existing tracks
-                    while (video.firstChild) {
-                        video.removeChild(video.firstChild);
-                    }
-
-                    const track = document.createElement('track');
-                    track.kind = 'captions';
-                    track.label = 'English';
-                    track.srclang = 'en';
-                    track.src = subtitleUrl;
-                    track.default = true;
-                    
-                    video.appendChild(track);
-                }
-            } catch (error) {
-                showError('Error initializing player: ' + error.message);
-                console.error('Player initialization error:', error);
-            }
+              }
+            });
+          } else {
+            video.src = videoUrl;
+          }
+          if (subtitleUrl) {
+            while (video.firstChild) video.removeChild(video.firstChild);
+            const track = document.createElement('track');
+            track.kind = 'captions';
+            track.label = 'English';
+            track.srclang = 'en';
+            track.src = subtitleUrl.endsWith('.srt') ? await convertSrtToVtt(subtitleUrl) : subtitleUrl;
+            track.default = true;
+            video.appendChild(track);
+          }
+        } catch (error) {
+          showError('Error: ' + error.message);
+          console.error('Player error:', error);
         }
-
-        // Wait for all scripts to load before initializing
-        window.addEventListener('load', function() {
-            // Check if required libraries are loaded
-            if (typeof Plyr === 'undefined' || typeof Hls === 'undefined') {
-                showError('Required libraries failed to load. Please refresh the page.');
-                return;
-            }
-            initPlayer();
+      }
+      window.addEventListener('load', () => {
+        if (typeof Plyr === 'undefined' || typeof Hls === 'undefined') {
+          showError('Required libraries failed to load. Please refresh.');
+          return;
+        }
+        player = new Plyr('#player', {
+          captions: {
+            active: true,
+            update: true
+          },
+          controls: ['play-large', 'restart', 'rewind', 'play', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+          settings: ['captions', 'quality', 'speed'],
+          speed: {
+            selected: 1,
+            options: [0.5, 0.75, 1, 1.25, 1.5, 2]
+          },
+          quality: {
+            default: 576,
+            options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
+          },
+          loadSprite: true,
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.svg',
+          blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
         });
-
+        // Handle player errors
+        player.on('error', (event) => {
+          showError('Player error: ' + event.detail.message);
+        });
+        // Handle quality changes
+        player.on('qualitychange', () => {
+          updateStats();
+        });
+        // Handle fullscreen for mobile devices
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         function handleFullScreenChange() {
-	        if (isMobile) {
-		        if (document.fullscreenElement) {
-			        if (screen.orientation && screen.orientation.lock) {
-				        screen.orientation.lock('landscape').catch((err) => {
-					        console.warn('Failed to lock orientation:', err);
-				        });
-			        }
-		        } else {
-			        if (screen.orientation && screen.orientation.unlock) {
-				        screen.orientation.unlock().catch((err) => {
-					        console.warn('Failed to unlock orientation:', err);
-				        });
-			        }
-		        }
-	        }
+          if (isMobile && document.fullscreenElement) {
+            if (screen.orientation?.lock) {
+              screen.orientation.lock('landscape').catch(err => {
+                console.warn('Failed to lock orientation:', err);
+              });
+            }
+          } else if (screen.orientation?.unlock) {
+            screen.orientation.unlock().catch(err => {
+              console.warn('Failed to unlock orientation:', err);
+            });
+          }
         }
-
+        // Add fullscreen change listener
         document.addEventListener('fullscreenchange', handleFullScreenChange);
+        // Handle keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (document.activeElement.tagName === 'INPUT') return;
+          switch (e.key.toLowerCase()) {
+            case 'f':
+              player.fullscreen.toggle();
+              break;
+            case 'm':
+              player.muted = !player.muted;
+              break;
+            case ' ':
+              e.preventDefault();
+              player.togglePlay();
+              break;
+            case 'arrowleft':
+              e.preventDefault();
+              player.rewind(5);
+              break;
+            case 'arrowright':
+              e.preventDefault();
+              player.forward(5);
+              break;
+            case 'arrowup':
+              e.preventDefault();
+              player.increaseVolume(0.1);
+              break;
+            case 'arrowdown':
+              e.preventDefault();
+              player.decreaseVolume(0.1);
+              break;
+          }
+        });
+        // Handle visibility change to pause when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden && !player.paused) {
+            player.pause();
+          }
+        });
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+          if (hls) {
+            hls.destroy();
+          }
+          if (statsInterval) {
+            clearInterval(statsInterval);
+          }
+          if (player) {
+            player.destroy();
+          }
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
