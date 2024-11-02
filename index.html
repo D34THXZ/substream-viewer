@@ -126,6 +126,10 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
       }
+      
+      .btn-load {
+          margin-bottom: 2rem;
+      }
 
       #player {
         width: 100%;
@@ -265,7 +269,7 @@
         <label for="subtitleUrl">Subtitle URL (VTT/SRT):</label>
         <input type="text" id="subtitleUrl" placeholder="Enter subtitle URL">
       </div>
-      <button onclick="loadVideo()">Load Video</button>
+      <button class="btn-load" onclick="loadVideo()">Load Video</button>
       <div id="errorMessage" class="error-message"></div>
       <video id="player" playsinline controls crossorigin>
         <source type="application/x-mpegURL">
